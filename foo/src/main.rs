@@ -1,30 +1,33 @@
-use std::io;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::env;
 
-fn split_string(s: String, delimiter: char, field: usize) -> String {
-    let parts: Vec<&str> = s.split(delimiter).collect();
-    let result = parts.get(field);
-    return result.unwrap().to_string();
-}
 fn main() {
-    let mut input=String::new();
-    while input.trim() != "exit" {
-        input.clear();
-        io::stdin().read_line(&mut input).unwrap();
-        println!("You entered: {}", input);
+    let args: Vec<String> = env::args().collect();
+
+    // The first argument is the path that was used to call the program.
+    let file = File::open(&args[1]);
+    let file = match file {
+        Ok(file) => file,
+        Err(error) => {
+            match error.kind() {
+                std::io::ErrorKind::NotFound => {
+                    panic!("File not found: {}", error)
+                }
+                _ => {
+                    panic!("Error opening file: {}", error)
+                }
+            }
+        }
+    };
+    
+    let reader = BufReader::new(file);
+    for line in reader.lines() {
+        match line {
+            Ok(line) => println!("{}", line),
+            Err(error) => {
+                panic!("Error reading line: {}", error)
+            }
+        }
     }
-
-    // for i in (0..=10).rev() {
-    //     println!("Hello, world! {}", i);
-    // }
-
-    // let name = "Alice";
-    // match name {
-    //     "Alice" => println!("Hello, Alice!"),
-    //     "Bob" => println!("Hello, Bob!"),
-    //     _ => println!("Hello, world!"),
-    // }
-
-    let chunk = split_string("hello,world".to_string(), ',', 1);
-    println!("{}", chunk);
-
 }
